@@ -190,7 +190,11 @@ def sync_lists(api1, api2, verbose_output=False, send_summary_dm=False):
         listpairs.append((list1, list2))
 
     for list2 in lists2:
-        # All the lists that remain in lists2 are not present on the first account.
+        if "exclude" in list2.description:
+            if verbose_output:
+                print("Excluding list %s from syncing." % list2.name)
+            continue
+        # All the lists that remain in lists2 and have not been excluded are not present on the first account.
         # That's why we ask whether we should create the list on the first account for each one of them.
         ask_for_list_creation(listpairs, api1, name1, list2, True)
 
