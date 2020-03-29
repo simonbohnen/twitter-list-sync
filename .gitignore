@@ -1,0 +1,4 @@
+env
+excluded_lists.txt
+ignore/
+.idea/
