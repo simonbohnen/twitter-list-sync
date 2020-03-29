@@ -127,7 +127,7 @@ def ask_for_list_creation(listpairs, api, api_name, list1, store_new_list_first)
         print("Skipping list.")
 
 
-def sync_lists(api1, api2, excluded_list_names, verbose_output=False, send_summary_dm=False):
+def sync_lists(api1, api2, verbose_output=False, send_summary_dm=False):
     """
     Syncs all lists between two users.
     Lists are identified by name.
@@ -135,16 +135,16 @@ def sync_lists(api1, api2, excluded_list_names, verbose_output=False, send_summa
     Deleting a member from a list is only possible if both remove the member from the list previous to the sync.
     Protected members are ignored. This can lead to different numbers of list members.
     If a list doesn't exist on an account, the user is asked if he wants to create it.
+    Lists whose descriptions include the word "exclude" on any of the two accounts will be excluded from syncing.
     :param api1: The api of the first user.
     :param api2: The api of the second user.
-    :param excluded_list_names: A list of list names that should be excluded from syncing.
     :param verbose_output: If true, output will be verbose.
     :param send_summary_dm: If true, a summary direct message is sent from api1 to api2.
     """
 
     # Get lists from both accounts.
-    lists1 = [list1 for list1 in api1.GetLists() if list1.name not in excluded_list_names]
-    lists2 = [list2 for list2 in api2.GetLists() if list2.name not in excluded_list_names]
+    lists1 = [list1 for list1 in api1.GetLists() if list1.name]
+    lists2 = [list2 for list2 in api2.GetLists() if list2.name]
 
     # Get the names of the accounts used for logging.
     if len(lists1) == 0:
@@ -174,6 +174,13 @@ def sync_lists(api1, api2, excluded_list_names, verbose_output=False, send_summa
     for list1 in lists1:
         # Get and remove list of second account based on name
         list2 = remove_list_by_name(lists2, list1.name)
+
+        # Exclude lists that have "exclude" in the description from syncing.
+        if "excluded" in list1.description or (list2 is not None and "excluded" in list2.description):
+            if verbose_output:
+                print("Excluding list %s from syncing." % list1.name)
+            continue
+
         if list2 is None:
             ask_for_list_creation(listpairs, api2, name2, list1, False)
             continue
@@ -214,15 +221,8 @@ def sync_lists(api1, api2, excluded_list_names, verbose_output=False, send_summa
             api1.PostDirectMessage(msg, user_id=id2)
 
 
-def main(verbose=False, send_summary_dm=True):
-    excluded_lists_file = open("excluded_lists.txt", "r")
-    excluded_names = excluded_lists_file.readlines()
-    excluded_lists_file.close()
-
-    if verbose:
-        print("Excluded lists: %s" % ", ".join(excluded_names))
-
-    sync_lists(API1, API2, excluded_names, verbose, send_summary_dm)
+def lambda_handler(event, context):
+    sync_lists(API1, API2, True, True)
 
 
 if __name__ == '__main__':
@@ -230,4 +230,4 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true', help="have verbose output")
     parser.add_argument('--dm', action='store_true', help="send a summary dm between the two accounts after syncing")
     args = parser.parse_args()
-    main(args.verbose, args.send_summary_dm)
+    sync_lists(API1, API2, args.verbose, args.send_summary_dm)
