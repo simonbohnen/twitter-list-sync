@@ -176,7 +176,7 @@ def sync_lists(api1, api2, verbose_output=False, send_summary_dm=False):
         list2 = remove_list_by_name(lists2, list1.name)
 
         # Exclude lists that have "exclude" in the description from syncing.
-        if "excluded" in list1.description or (list2 is not None and "excluded" in list2.description):
+        if "exclude" in list1.description or (list2 is not None and "exclude" in list2.description):
             if verbose_output:
                 print("Excluding list %s from syncing." % list1.name)
             continue
@@ -230,4 +230,4 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true', help="have verbose output")
     parser.add_argument('--dm', action='store_true', help="send a summary dm between the two accounts after syncing")
     args = parser.parse_args()
-    sync_lists(API1, API2, args.verbose, args.send_summary_dm)
+    sync_lists(API1, API2, args.verbose, args.dm)
