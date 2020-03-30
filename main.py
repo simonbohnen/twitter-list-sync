@@ -230,7 +230,9 @@ def lambda_handler(event, context):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=
+                                     'This tool helps you to sync Twitter lists between two accounts. '
+                                     'For detailed usage see https://github.com/simonbohnen/twitter-list-sync.')
     parser.add_argument('-v', '--verbose', action='store_true', help="have verbose output")
     parser.add_argument('--dm', action='store_true', help="send a summary dm between the two accounts after syncing")
     args = parser.parse_args()
